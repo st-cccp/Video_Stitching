@@ -16,8 +16,8 @@ Homography::Homography(Mat img1, Mat img2)
 
 void Homography::readImgs(VideoCapture& v1, VideoCapture& v2)
 {
-	v1.read(img1);
-	v2.read(img2);
+	if (!v1.read(img1))throw(Error_IN_Homography_readImgs);
+	if (!v2.read(img2))throw(Error_IN_Homography_readImgs);
 }
 
 void Homography::setImgs(Mat Img1, Mat Img2)
@@ -94,15 +94,15 @@ void Homography::drawMatches()
 	cv::drawMatches(img1, keyPoints1, img2, keyPoints2, matches, matchImage, 255, 255);
 	imshow("drawMatches", matchImage);
 /*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ð­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜Žï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŽŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŽŸæ–‡å‡ºå¤„é“¾æŽ¥åŠæœ¬å£°æ˜Žã€‚
+		åŽŸæ–‡é“¾æŽ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 */
 }
 
 Mat Homography::getHomography()
 {
-	return Mat();
+	return homography;
 }
 
 Homography::~Homography()
@@ -111,8 +111,10 @@ Homography::~Homography()
 
 void Homography::detectKeyPoints()
 {
-	detector->detect(img1, keyPoints1, Mat());
-	detector->detect(img2, keyPoints2, Mat());
+	Mat img1gray; Mat img2gray;
+	cvtColor(img1, img1gray, CV_8UC1); cvtColor(img2, img2gray, CV_8UC1);
+	detector->detect(img1gray, keyPoints1, Mat());
+	detector->detect(img2gray, keyPoints2, Mat());
 }
 
 void Homography::computeDescriptors()
@@ -124,9 +126,9 @@ void Homography::computeDescriptors()
 	extractor->compute(img1, keyPoints1, descriptors1);
 	extractor->compute(img2, keyPoints2, descriptors2);
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ð­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜Žï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŽŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŽŸæ–‡å‡ºå¤„é“¾æŽ¥åŠæœ¬å£°æ˜Žã€‚
+		åŽŸæ–‡é“¾æŽ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
 }
 
@@ -138,9 +140,9 @@ void Homography::match()
 	}
 	matcher->match(descriptors1, descriptors2, firstMatches, Mat());
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ð­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜Žï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŽŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŽŸæ–‡å‡ºå¤„é“¾æŽ¥åŠæœ¬å£°æ˜Žã€‚
+		åŽŸæ–‡é“¾æŽ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
 }
 
@@ -152,9 +154,9 @@ void Homography::matchesToSelfPoints()
 		selfPoints2.push_back(keyPoints2.at(it->trainIdx).pt);
 	}
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ð­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜Žï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŽŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŽŸæ–‡å‡ºå¤„é“¾æŽ¥åŠæœ¬å£°æ˜Žã€‚
+		åŽŸæ–‡é“¾æŽ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
 }
 
@@ -171,9 +173,9 @@ void Homography::findHomography()
 	inliers = vector<uchar>(selfPoints1.size(), 0);
 	homography = cv::findHomography(selfPoints1, selfPoints2, inliers, FM_RANSAC, 1.0);
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ð­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜Žï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŽŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŽŸæ–‡å‡ºå¤„é“¾æŽ¥åŠæœ¬å£°æ˜Žã€‚
+		åŽŸæ–‡é“¾æŽ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
 }
 
@@ -195,8 +197,8 @@ void Homography::matchesFilter()
 		}
 	}
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ð­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜Žï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŽŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŽŸæ–‡å‡ºå¤„é“¾æŽ¥åŠæœ¬å£°æ˜Žã€‚
+		åŽŸæ–‡é“¾æŽ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
 }
