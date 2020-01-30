@@ -5,6 +5,8 @@
 using namespace std;
 using namespace cv;
 
+#include "TheErrors.h"
+
 class Homography
 {
 private:
@@ -61,8 +63,8 @@ private:
 	void matchesToSelfPoints();
 	void findHomography();
 	void matchesFilter();
-/*	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ğ­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970*/
+/*	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜ï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŸæ–‡å‡ºå¤„é“¾æ¥åŠæœ¬å£°æ˜ã€‚
+		åŸæ–‡é“¾æ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970*/
 };
 
