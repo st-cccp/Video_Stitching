@@ -9,19 +9,29 @@ using namespace cv;
 
 void Openvideo(VideoCapture& v, string s);
 void Openvideo(VideoCapture& v, long long id = 0);
+void onMouse(int event, int x, int y, int flags, void* param);
+void Releasevideo(VideoCapture& v);
+
+class DenoteTime {
+	int64 time;
+public:
+	DenoteTime();
+	void operator()();
+};
 
 class MappingsCenter {
 	int total_num;
 	Homography* _homos;
 	VideoCapture* sources;
 
-	void calculate(int index, int source1, int source2);//source1±í²Î¿¼Í¼£¬source2±íµ½´ïÍ¼
+	void calculate(int index, int source1, int source2);//source1è¡¨å‚è€ƒå›¾ï¼Œsource2è¡¨åˆ°è¾¾å›¾
 
 public:
 	MappingsCenter(int totalnum);
 	MappingsCenter(int totalnum,VideoCapture* vsrc);
 
-	Homography& operator()(int i, int j);//´ÓiÓ³Éäµ½jµÄµ¥Ó¦ĞÔ¾ØÕó£¬Èç¹û²»´æÔÚ½«throw´íÎó´úÂë
+	Homography& operator()(int i, int j);//ä»iæ˜ å°„åˆ°jçš„å•åº”æ€§çŸ©é˜µï¼Œå¦‚æœä¸å­˜åœ¨å°†throwé”™è¯¯ä»£ç 
 
-	void calculate();//¼ÆËãËùÓĞµ¥Ó¦ĞÔ¾ØÕó
+	void calculate();//è®¡ç®—æ‰€æœ‰å•åº”æ€§çŸ©é˜µ
+	void drawmatches();
 };
