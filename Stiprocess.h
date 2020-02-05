@@ -5,6 +5,8 @@
 using namespace std;
 using namespace cv;
 
+#include "Homography.h"
+
 class Stitchingcontroler {
 	int total_num;
 	VideoCapture* sources;
