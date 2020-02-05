@@ -5,21 +5,22 @@
 using namespace std;
 using namespace cv;
 
+#include "TheErrors.h"
+
 class Homography
 {
 private:
-	Mat img1;
-	Mat img2;
+	Mat img[2];
+
+	Mat imggray[2];
 
 	Ptr<FeatureDetector> detector;
 	Ptr<DescriptorExtractor> extractor;
 	Ptr<DescriptorMatcher> matcher;
 
-	vector<KeyPoint> keyPoints1;
-	vector<KeyPoint> keyPoints2;
+	vector<KeyPoint> keyPoints[2];
 
-	Mat descriptors1;
-	Mat descriptors2;
+	Mat descriptors[2];
 
 	vector<DMatch> firstMatches;
 	vector<DMatch> matches;
@@ -40,6 +41,7 @@ public:
 	void setFeatureDetector(string detectorName);
 	void setDescriptorExtractor(string descriptorName);
 	void setDescriptorMatcher(string matcherName);
+	void clearresult();
 
 	vector<KeyPoint> getKeyPoints1();
 	vector<KeyPoint> getKeyPoints2();
@@ -61,8 +63,14 @@ private:
 	void matchesToSelfPoints();
 	void findHomography();
 	void matchesFilter();
-/*	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ğ­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970*/
+	
+	bool checkmatch(DMatch m);
+	bool colorcheck(DMatch m);
+	void Changebright();
+	void ChangeKeypoint(int bax0, int bay0, KeyPoint& kp);
+	void detectKeyPointsHere(Rect area, int subscript);
+	void detectKeyPointsBlocks(int index = 0);
+/*	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜ï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŸæ–‡å‡ºå¤„é“¾æ¥åŠæœ¬å£°æ˜ã€‚
+		åŸæ–‡é“¾æ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970*/
 };
-

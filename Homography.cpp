@@ -10,20 +10,23 @@ Homography::Homography()
 Homography::Homography(Mat img1, Mat img2)
 {
 	new(this) Homography();
-	this->img1 = img1;
-	this->img2 = img2;
+	this->img[0] = img1;
+	this->img[1] = img2;
+	cvtColor(img1, imggray[0], COLOR_RGB2GRAY); cvtColor(img2, imggray[1], COLOR_RGB2GRAY);
 }
 
 void Homography::readImgs(VideoCapture& v1, VideoCapture& v2)
 {
-	v1.read(img1);
-	v2.read(img2);
+	if (!v1.read(img[0]))throw(Error_IN_Homography_readImgs);
+	if (!v2.read(img[1]))throw(Error_IN_Homography_readImgs);
+	cvtColor(img[0], imggray[0], COLOR_RGB2GRAY); cvtColor(img[1], imggray[1], COLOR_RGB2GRAY);
 }
 
 void Homography::setImgs(Mat Img1, Mat Img2)
 {
-	Img1.copyTo(this->img1);
-	Img2.copyTo(this->img2);
+	Img1.copyTo(this->img[0]);
+	Img2.copyTo(this->img[1]);
+	cvtColor(img[0], imggray[0], COLOR_RGB2GRAY); cvtColor(img[1], imggray[1], COLOR_RGB2GRAY);
 }
 
 void Homography::setFeatureDetector(string detectorName)
@@ -39,40 +42,53 @@ void Homography::setDescriptorMatcher(string matcherName)
 	matcher = DescriptorMatcher::create(matcherName);
 }
 
+void Homography::clearresult()
+{
+	descriptors[0].release();
+	descriptors[1].release();
+	matches.clear();
+	firstMatches.clear();
+	keyPoints[0].clear();
+	keyPoints[1].clear();
+	selfPoints1.clear();
+	selfPoints2.clear();
+	inliers.clear();
+}
+
 vector<KeyPoint> Homography::getKeyPoints1()
 {
-	if (keyPoints1.size() == 0)
+	if (keyPoints[0].size() == 0)
 	{
 		detectKeyPoints();
 	}
-	return keyPoints1;
+	return keyPoints[0];
 }
 
 vector<KeyPoint> Homography::getKeyPoints2()
 {
-	if (keyPoints2.size() == 0)
+	if (keyPoints[1].size() == 0)
 	{
 		detectKeyPoints();
 	}
-	return keyPoints2;
+	return keyPoints[1];
 }
 
 Mat Homography::getDescriptors1()
 {
-	if (descriptors1.data == NULL)
+	if (descriptors[0].data == NULL)
 	{
 		computeDescriptors();
 	}
-	return descriptors1;
+	return descriptors[0];
 }
 
 Mat Homography::getDescriptors2()
 {
-	if (descriptors2.data == NULL)
+	if (descriptors[1].data == NULL)
 	{
 		computeDescriptors();
 	}
-	return descriptors2;
+	return descriptors[1];
 }
 
 vector<DMatch> Homography::getMatches()
@@ -91,18 +107,18 @@ void Homography::drawMatches()
 	{
 		matchesFilter();
 	}
-	cv::drawMatches(img1, keyPoints1, img2, keyPoints2, matches, matchImage, 255, 255);
+	cv::drawMatches(img[0], keyPoints[0], img[1], keyPoints[1], matches, matchImage, 255, 255);
 	imshow("drawMatches", matchImage);
 /*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ğ­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜ï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŸæ–‡å‡ºå¤„é“¾æ¥åŠæœ¬å£°æ˜ã€‚
+		åŸæ–‡é“¾æ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 */
 }
 
 Mat Homography::getHomography()
 {
-	return Mat();
+	return homography;
 }
 
 Homography::~Homography()
@@ -111,36 +127,37 @@ Homography::~Homography()
 
 void Homography::detectKeyPoints()
 {
-	detector->detect(img1, keyPoints1, Mat());
-	detector->detect(img2, keyPoints2, Mat());
+	detectKeyPointsBlocks();
+	//detector->detect(imggray[0], keyPoints[0], Mat());
+	//detector->detect(imggray[1], keyPoints[1], Mat());
 }
 
 void Homography::computeDescriptors()
 {
-	if (keyPoints1.size() == 0 || keyPoints2.size() == 0)
+	if (keyPoints[0].size() == 0 || keyPoints[1].size() == 0)
 	{
 		detectKeyPoints();
 	}
-	extractor->compute(img1, keyPoints1, descriptors1);
-	extractor->compute(img2, keyPoints2, descriptors2);
+	extractor->compute(imggray[0], keyPoints[0], descriptors[0]);
+	extractor->compute(imggray[1], keyPoints[1], descriptors[1]);
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ğ­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜ï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŸæ–‡å‡ºå¤„é“¾æ¥åŠæœ¬å£°æ˜ã€‚
+		åŸæ–‡é“¾æ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
 }
 
 void Homography::match()
 {
-	if (descriptors1.data == NULL || descriptors2.data == NULL)
+	if (descriptors[0].data == NULL || descriptors[1].data == NULL)
 	{
 		computeDescriptors();
 	}
-	matcher->match(descriptors1, descriptors2, firstMatches, Mat());
+	matcher->match(descriptors[0], descriptors[1], firstMatches, Mat());
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ğ­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜ï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŸæ–‡å‡ºå¤„é“¾æ¥åŠæœ¬å£°æ˜ã€‚
+		åŸæ–‡é“¾æ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
 }
 
@@ -148,13 +165,13 @@ void Homography::matchesToSelfPoints()
 {
 	for (vector<DMatch>::const_iterator it = firstMatches.begin(); it != firstMatches.end(); ++it)
 	{
-		selfPoints1.push_back(keyPoints1.at(it->queryIdx).pt);
-		selfPoints2.push_back(keyPoints2.at(it->trainIdx).pt);
+		selfPoints1.push_back(keyPoints[0].at(it->queryIdx).pt);
+		selfPoints2.push_back(keyPoints[1].at(it->trainIdx).pt);
 	}
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ğ­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜ï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŸæ–‡å‡ºå¤„é“¾æ¥åŠæœ¬å£°æ˜ã€‚
+		åŸæ–‡é“¾æ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
 }
 
@@ -171,9 +188,9 @@ void Homography::findHomography()
 	inliers = vector<uchar>(selfPoints1.size(), 0);
 	homography = cv::findHomography(selfPoints1, selfPoints2, inliers, FM_RANSAC, 1.0);
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ğ­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜ï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŸæ–‡å‡ºå¤„é“¾æ¥åŠæœ¬å£°æ˜ã€‚
+		åŸæ–‡é“¾æ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
 }
 
@@ -191,12 +208,116 @@ void Homography::matchesFilter()
 	{
 		if (*itIn)
 		{
-			matches.push_back(*itM);
+			if (checkmatch(*itM))
+			{
+				matches.push_back(*itM);
+			}
 		}
 	}
 	/*
-	¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
-		°æÈ¨ÉùÃ÷£º±¾ÎÄÎªCSDN²©Ö÷¡¸czl389¡¹µÄÔ­´´ÎÄÕÂ£¬×ñÑ­ CC 4.0 BY - SA °æÈ¨Ğ­Òé£¬×ªÔØÇë¸½ÉÏÔ­ÎÄ³ö´¦Á´½Ó¼°±¾ÉùÃ÷¡£
-		Ô­ÎÄÁ´½Ó£ºhttps ://blog.csdn.net/czl389/article/details/60325970
+	â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
+		ç‰ˆæƒå£°æ˜ï¼šæœ¬æ–‡ä¸ºCSDNåšä¸»ã€Œczl389ã€çš„åŸåˆ›æ–‡ç« ï¼Œéµå¾ª CC 4.0 BY - SA ç‰ˆæƒåè®®ï¼Œè½¬è½½è¯·é™„ä¸ŠåŸæ–‡å‡ºå¤„é“¾æ¥åŠæœ¬å£°æ˜ã€‚
+		åŸæ–‡é“¾æ¥ï¼šhttps ://blog.csdn.net/czl389/article/details/60325970
 	*/
+}
+
+bool Homography::checkmatch(DMatch m)
+{
+	return colorcheck(m);
+}
+
+bool Homography::colorcheck(DMatch m)
+{
+	
+	return true;
+}
+
+void Homography::Changebright()
+{
+	int mid_bright;
+	int mid_bright1 = mean(imggray[0]).val[0];
+	int mid_bright2 = mean(imggray[1]).val[0];
+	if (mid_bright1 > mid_bright2)
+	{
+		mid_bright = mid_bright1;
+	}
+	else
+	{
+		mid_bright = mid_bright2;
+	}
+	for (int y = 0; y < imggray[0].rows; y++)
+	{
+		for (int x = 0; x < imggray[0].cols; x++)
+		{
+			imggray[0].at<uchar>(y, x) = saturate_cast<uchar>(imggray[0].at<uchar>(y, x)) - mid_bright1 + mid_bright;
+		}
+	}
+	for (int y = 0; y < imggray[1].rows; y++)
+	{
+		for (int x = 0; x < imggray[1].cols; x++)
+		{
+			imggray[1].at<uchar>(y, x) = saturate_cast<uchar>(imggray[1].at<uchar>(y, x)) - mid_bright2 + mid_bright;
+		}
+	}
+	//è°ƒæ•´äº®åº¦
+	return;
+}
+
+void Homography::ChangeKeypoint(int bax0, int bay0, KeyPoint& kp)
+{
+	kp.pt.x += bax0;
+	kp.pt.y += bay0;
+}
+
+void Homography::detectKeyPointsHere(Rect area,int subscript)
+{
+	Mat image_cut = Mat(imggray[subscript], area);
+	/*namedWindow("æˆ‘ä»¬çœ‹çœ‹");
+	imshow("æˆ‘ä»¬çœ‹çœ‹", image_cut);
+	waitKey(0);*/
+	vector<KeyPoint> Detailkeypoint;
+	detector->detect(image_cut, Detailkeypoint);
+	int thesize = Detailkeypoint.size();
+	for (int i = 0; i < thesize; i++)
+	{
+		Detailkeypoint[i].pt.x += area.tl().x;
+		Detailkeypoint[i].pt.y += area.tl().y;
+		keyPoints[subscript].push_back(Detailkeypoint[i]);
+	}
+}
+
+void Homography::detectKeyPointsBlocks(int index)
+{
+	keyPoints[0].clear(); keyPoints[1].clear();
+	int xseg; int yseg;
+	Size img1size = imggray[0].size();
+	Size img2size = imggray[1].size();
+	int seg_num = 3;
+	switch (index)
+	{
+	case 0:
+		xseg = img1size.width / seg_num;
+		yseg = img1size.height / seg_num;
+		for (int i = 0; i < seg_num; i++)
+		{
+			for (int j = 0; j < seg_num; j++)
+			{
+				Rect therec(i * xseg, j * yseg, max(xseg, img1size.width - (seg_num - 1) * xseg), max(yseg, img1size.height - (seg_num - 1) * yseg));
+				detectKeyPointsHere(therec, 0);
+			}
+		}
+		xseg = img2size.width / seg_num;
+		yseg = img2size.height / seg_num;
+		for (int i = 0; i < seg_num; i++)
+		{
+			for (int j = 0; j < seg_num; j++)
+			{
+				Rect therec(i * xseg, j * yseg, max(xseg, img1size.width - (seg_num - 1) * xseg), max(yseg, img1size.height - (seg_num - 1) * yseg));
+				detectKeyPointsHere(therec, 1);
+			}
+		}
+		break;
+	default:
+		break;
+	}
 }

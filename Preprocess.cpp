@@ -3,6 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <cstdio>
+#include <iostream>
 #include <cstdlib>
 #include <cmath>
 
@@ -10,7 +11,10 @@
 
 void Openvideo(VideoCapture& v, string s)
 {
-	v.open(s);
+	if (s == "\0")
+		v.open(0);
+	else
+		v.open(s);
 	if (!v.isOpened())
 	{
 		std::cout << "video not open." << std::endl;
@@ -27,9 +31,55 @@ void Openvideo(VideoCapture& v, long long id)
 	}
 }
 
+
+void onMouse(int event, int x, int y, int flags, void* param)
+{
+	Mat* im = reinterpret_cast<Mat*>(param);
+	switch (event)
+	{
+	case EVENT_LBUTTONDOWN:     //鼠标左键按下响应：返回坐标和灰度
+		std::cout << "at(" << x << "," << y << ")value is:"
+			<< static_cast<int>(im->at<uchar>(cv::Point(x, y))) << std::endl;
+		break;
+	case EVENT_RBUTTONDOWN:    //鼠标右键按下响应：输入坐标并返回该坐标的灰度
+		std::cout << "input(x,y)" << endl;
+		std::cout << "x =" << endl;
+		cin >> x;
+		std::cout << "y =" << endl;
+		cin >> y;
+		std::cout << "at(" << x << "," << y << ")value is:"
+			<< static_cast<int>(im->at<uchar>(cv::Point(x, y))) << std::endl;
+		break;
+	}
+}
+/*
+————————————————
+版权声明：本文为CSDN博主「iracer」的原创文章，遵循 CC 4.0 BY - SA 版权协议，转载请附上原文出处链接及本声明。
+原文链接：https ://blog.csdn.net/iracer/article/details/49048481
+*/
+
+void Releasevideo(VideoCapture& v)
+{
+	v.release();
+}
+
+void printmatrix(Mat m)
+{
+	for (int i = 0; i < m.rows; i++)
+	{
+		for (int j = 0; j < m.cols; j++)
+		{
+			cout << m.at<uchar>(j, i)<<" ";
+		}
+		cout << endl;
+	}
+}
+
 void MappingsCenter::calculate(int index, int source1, int source2)
 {
 	_homos[index].readImgs(sources[source1], sources[source2]);
+	_homos[index].clearresult();
+	_homos[index].getMatches();
 }
 
 MappingsCenter::MappingsCenter(int totalnum)
@@ -54,15 +104,15 @@ Homography& MappingsCenter::operator()(int i, int j)
 	}
 	if (i > j)
 	{
-		if (i > total_num)throw(Error_IN_MappingsCenter_operator_ijposerror);
+		if (i > total_num / 2)throw(Error_IN_MappingsCenter_operator_ijposerror);
 		else return _homos[j];
 	}
 	else
 	{
-		if (i < total_num)throw(Error_IN_MappingsCenter_operator_ijposerror);
+		if (i < total_num / 2)throw(Error_IN_MappingsCenter_operator_ijposerror);
 		else return _homos[i];
 	}
-	// TODO: �ڴ˴����� return ���
+	// TODO: 在此处插入 return 语句
 }
 
 void MappingsCenter::calculate()
@@ -77,4 +127,29 @@ void MappingsCenter::calculate()
 	}
 }
 
+void MappingsCenter::drawmatches()
+{
+	for (int i = 0; i < total_num - 1; i++)
+	{
+		_homos[i].drawMatches();
+		waitKey(10);
+	}
+}
 
+DenoteTime::DenoteTime()
+{
+	time = 0;
+}
+
+void DenoteTime::operator()()
+{
+	if (!time)
+	{
+		time = getTickCount() / getTickFrequency();
+	}
+	else
+	{
+		printf("Time passed after the last node : %lld\n", int64(getTickCount() / getTickFrequency()) - time);
+		time = getTickCount() / getTickFrequency();
+	}
+}
