@@ -22,9 +22,10 @@ int main()
 	VideoCapture* videos = new VideoCapture[total_cameras];//视频源
 	{
 		string* names = new string[total_cameras];
-		names[0] = "http://admin:admin@192.168.31.202:8081";
+		names[0] = "\0";
+		//names[0] = "http://admin:admin@192.168.31.202:8081";
 		names[1] = "http://admin:admin@192.168.31.15:8081";
-		
+
 		for (int i = 0; i < total_cameras; i++)
 		{
 			Openvideo(videos[i], names[i]);
@@ -36,7 +37,7 @@ int main()
 	while(!stop)
 	{
 		mapcenter.calculate();//计算可能有的所有单应性矩阵
-		mapcenter.drawmatches(); if (waitKey(25) > 0)stop = true;
+		mapcenter.drawmatches(); if (waitKey(10) > 0)stop = true;
 	}
 	denotetime();//求解单应性矩阵阶段，使用MappingsCenter类集中管理，计算
 
@@ -50,6 +51,7 @@ int main()
 		//默认直接截取，考虑到同时性问题，可能需要后续增加缓冲区等保证拼到一起的为同时刻の图像
 		sticontroler.Changebright();
 		//根据中间参考图像（或者综合考虑？如果时间复杂度允许）调整各张图像的整体亮度
+		printmatrix(mapcenter(1, 0).getHomography());
 		//imshow("Result", sticontroler.stitch());
 		if (cv::waitKey(25) > 0)
 			stop = true;
