@@ -3,6 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <cstdio>
+#include <iostream>
 #include <cstdlib>
 #include <cmath>
 
@@ -62,9 +63,22 @@ void Releasevideo(VideoCapture& v)
 	v.release();
 }
 
+void printmatrix(Mat m)
+{
+	for (int i = 0; i < m.rows; i++)
+	{
+		for (int j = 0; j < m.cols; j++)
+		{
+			cout << m.at<uchar>(j, i)<<" ";
+		}
+		cout << endl;
+	}
+}
+
 void MappingsCenter::calculate(int index, int source1, int source2)
 {
 	_homos[index].readImgs(sources[source1], sources[source2]);
+	_homos[index].clearresult();
 	_homos[index].getMatches();
 }
 
@@ -90,12 +104,12 @@ Homography& MappingsCenter::operator()(int i, int j)
 	}
 	if (i > j)
 	{
-		if (i > total_num)throw(Error_IN_MappingsCenter_operator_ijposerror);
+		if (i > total_num / 2)throw(Error_IN_MappingsCenter_operator_ijposerror);
 		else return _homos[j];
 	}
 	else
 	{
-		if (i < total_num)throw(Error_IN_MappingsCenter_operator_ijposerror);
+		if (i < total_num / 2)throw(Error_IN_MappingsCenter_operator_ijposerror);
 		else return _homos[i];
 	}
 	// TODO: 在此处插入 return 语句
@@ -118,7 +132,7 @@ void MappingsCenter::drawmatches()
 	for (int i = 0; i < total_num - 1; i++)
 	{
 		_homos[i].drawMatches();
-		waitKey(50);
+		waitKey(10);
 	}
 }
 
