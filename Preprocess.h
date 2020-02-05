@@ -35,3 +35,6 @@ public:
 	void calculate();//计算所有单应性矩阵
 	void drawmatches();
 };
+
+
+void printmatrix(Mat m);
